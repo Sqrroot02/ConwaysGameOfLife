@@ -67,8 +67,8 @@ public class Game {
         Group root = new Group();
         Canvas canvas = new Canvas(1000,1000);
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        initStartupField(gc,canvas);
 
+        initStartupField(gc,canvas);
         root.getChildren().add(canvas);
 
         mainStage.setScene(new Scene(root));
@@ -96,6 +96,7 @@ public class Game {
         p.getChildren().add(canvas);
     }
 
+    // region Event Region
     private void initEvents(){
         mainStage.addEventFilter(MouseEvent.MOUSE_CLICKED,mouseClickedHandler);
         mainStage.addEventFilter(KeyEvent.KEY_PRESSED, keyPressedEvent);
@@ -120,7 +121,7 @@ public class Game {
             }
         }
     };
-
+    // endregion
     public boolean[][] Evaluate(boolean[][] field){
         ArrayList<Point2D> selectedFields = new ArrayList<>(); // Points which are alive
         // Searching for selected Fields;
@@ -136,14 +137,21 @@ public class Game {
         ArrayList<Point2D> nextGenAliveAddition = new ArrayList<>(); // Points which should be summorized in next Gen
 
         // Algorithm: With fucking 5 inner for-loops! Im gonna doot mysqlf...
-        for (int i = 0; i < selectedFields.size(); i++) {
+        /*
+        * STEP 1: Check all Neighbours of Alive Cells
+        * STEP 2: Check if this Cell must be killed
+        * STEP 3: Check all Dead Neighbours of Alive Cells Neighbours
+        * STEP 4: Check if this dead Cell can be (wiederaufbelebt werden...)
+        * STEP 5: Update Field Jacked-Array
+        * */
+        for (Point2D selectedField : selectedFields) {
             int cellAlive = 0; // Counter for Cells alive nearby an alive Cell
             for (int j = -1; j <= 1; j++) { // X Check
                 for (int k = -1; k <= 1; k++) { // Y Check
-                    int aliveX = (int)selectedFields.get(i).getX() + j; // Next Neighbour X of the current Alive cell
-                    int aliveY = (int)selectedFields.get(i).getY() + k; // Next Neighbour Y of the current Alive cell
-                    if (!(aliveX > field.length || aliveY > field[0].length || aliveX < 0 || aliveY < 0)){
-                        if (!(k == 0 && j == 0) && field[aliveX][aliveY]){
+                    int aliveX = (int) selectedField.getX() + j; // Next Neighbour X of the current Alive cell
+                    int aliveY = (int) selectedField.getY() + k; // Next Neighbour Y of the current Alive cell
+                    if (!(aliveX > field.length || aliveY > field[0].length || aliveX < 0 || aliveY < 0)) {
+                        if (!(k == 0 && j == 0) && field[aliveX][aliveY]) {
                             cellAlive++;
                         }
                         if (!field[aliveX][aliveY]) { // Proofs every single Dead-Cell nearby a single Alive Cell
@@ -152,22 +160,22 @@ public class Game {
                                 for (int m = -1; m <= 1; m++) { // Y Dead Check
                                     int deadX = aliveX + l; // Next Neighbour X of the current Dead cell
                                     int deadY = aliveY + m; // Next Neighbour Y of the current Dead cell
-                                    if (!(deadX > field.length || deadY > field[0].length || deadX < 0 || deadY < 0)){
-                                        if (!(l == 0 && m == 0) && field[deadX][deadY]){
+                                    if (!(deadX > field.length || deadY > field[0].length || deadX < 0 || deadY < 0)) {
+                                        if (!(l == 0 && m == 0) && field[deadX][deadY]) {
                                             deadCellAlive++;
                                         }
                                     }
                                 }
                             }
-                            if (deadCellAlive == 3){ // Neighbour-Condition: Alive if Dead Cell has exact 3 Alive Neighbours
+                            if (deadCellAlive == 3) { // Neighbour-Condition: Alive if Dead Cell has exact 3 Alive Neighbours
                                 nextGenAliveAddition.add(new Point2D(aliveX, aliveY));
                             }
                         }
                     }
                 }
             }
-            if (cellAlive >= 4 || cellAlive <= 1){ // Neighbour-Condition: Dead above 3 and under 2
-                nextGenDeadAddition.add(selectedFields.get(i));
+            if (cellAlive >= 4 || cellAlive <= 1) { // Neighbour-Condition: Dead above 3 and under 2
+                nextGenDeadAddition.add(selectedField);
             }
         }
         for (Point2D d : nextGenAliveAddition) { // Updates all NextGen AliveCells: #Jesus
